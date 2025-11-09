@@ -38,7 +38,7 @@ body
 
 .endpoint-section h2 
 {
-    color: #333;
+    color: #7f7f7f;
     font-size: 2rem;
     margin-bottom: 1rem;
     font-weight: bold;
@@ -46,7 +46,7 @@ body
 
 .endpoint-link 
 {
-    color: #673AB7;
+    color: #fbaa15;
     font-size: 1.5rem;
     text-decoration: underline;
     cursor: pointer;
@@ -55,7 +55,7 @@ body
 
 .endpoint-link:hover 
 {
-    color: #512DA8;
+    color: #fcc71a;
 }
 
 .right-section 
