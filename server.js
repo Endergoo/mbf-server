@@ -5,7 +5,6 @@ const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
@@ -22,7 +21,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Houses Array (Matching professor's format EXACTLY)
+// Houses Array with placeholder images
 let houses = [
   {
     _id: 1,
@@ -36,7 +35,7 @@ let houses = [
       "Large Backyard",
       "Two-Car Garage"
     ],
-    main_image: "listing1.jpeg",
+    main_image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop",
   },
   {
     _id: 2,
@@ -49,7 +48,7 @@ let houses = [
       "Wrap Around Porch",
       "Recently Renovated"
     ],
-    main_image: "listing2.jpg",
+    main_image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=300&fit=crop",
   },
   {
     _id: 3,
@@ -63,7 +62,7 @@ let houses = [
       "Master Suite",
       "Covered Deck"
     ],
-    main_image: "listing3.jpg",
+    main_image: "https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=400&h=300&fit=crop",
   },
   {
     _id: 4,
@@ -106,7 +105,6 @@ let houses = [
     main_image: "coming-soon.jpg",
   }
 ];
-
 // API Routes
 app.get('/api/houses', (req, res) => {
   res.json(houses);
