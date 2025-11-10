@@ -106,11 +106,13 @@ let houses = [
   }
 ];
 // API Routes
-app.get('/api/houses', (req, res) => {
+app.get('/api/houses', (req, res) => 
+{
   res.json(houses);
 });
 
-app.get('/api/houses/:id', (req, res) => {
+app.get('/api/houses/:id', (req, res) => 
+{
   const house = houses.find(h => h._id === parseInt(req.params.id));
   if (house) {
     res.json(house);
@@ -123,10 +125,12 @@ app.get('/api/houses/:id', (req, res) => {
 app.use(express.static('public'));
 
 // Root route - API Documentation
-app.get('/', (req, res) => {
+app.get('/', (req, res) => 
+{
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, () => 
+{
   console.log(`Server running on port ${PORT}`);
 });
