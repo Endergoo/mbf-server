@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
+const Joi = require('joi');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -11,17 +12,27 @@ app.use(express.static('public'));
 
 // Multer configuration
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (req, file, cb) => 
+  {
     cb(null, "./public/images/");
   },
-  filename: (req, file, cb) => {
+  filename: (req, file, cb) => 
+  {
     cb(null, file.originalname);
   },
 });
-
 const upload = multer({ storage: storage });
 
-// Houses Array with placeholder images
+// Joi validation
+const houseSchema = Joi.object({
+  name: Joi.string().min(3).max(100).required(),
+  size: Joi.number().integer().min(100).max(10000).required(),
+  bedrooms: Joi.number().integer().min(1).max(20).required(),
+  bathrooms: Joi.number().min(1).max(20).required(),
+  features: Joi.array().items(Joi.string()).min(1).required()
+});
+
+// Houses Array
 let houses = [
   {
     _id: 1,
@@ -105,6 +116,7 @@ let houses = [
     main_image: "coming-soon.jpg",
   }
 ];
+
 // API Routes
 app.get('/api/houses', (req, res) => 
 {
@@ -114,11 +126,72 @@ app.get('/api/houses', (req, res) =>
 app.get('/api/houses/:id', (req, res) => 
 {
   const house = houses.find(h => h._id === parseInt(req.params.id));
-  if (house) {
+  if (house) 
+  {
     res.json(house);
-  } else {
+  } 
+  else 
+  {
     res.status(404).json({ message: 'House not found' });
   }
+});
+
+// POST endpoint to add a new house
+app.post('/api/houses', upload.single('main_image'), (req, res) => 
+{
+  // Parse features if it's a string (from form data)
+  const houseData = 
+  {
+    name: req.body.name,
+    size: parseInt(req.body.size),
+    bedrooms: parseInt(req.body.bedrooms),
+    bathrooms: parseFloat(req.body.bathrooms),
+    features: typeof req.body.features === 'string' 
+      ? JSON.parse(req.body.features) 
+      : req.body.features
+  };
+
+  // Validate the house data using Joi
+  const { error, value } = houseSchema.validate(houseData);
+
+  if (error) 
+  {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: error.details.map(detail => detail.message)
+    });
+  }
+
+  // Check if image was uploaded
+  if (!req.file) 
+  {
+    return res.status(400).json({
+      success: false,
+      message: 'Image file is required'
+    });
+  }
+
+  // Generate new ID
+  const newId = houses.length > 0 ? Math.max(...houses.map(h => h._id)) + 1 : 1;
+
+  // Create new house object
+  const newHouse = 
+  {
+    _id: newId,
+    ...value,
+    main_image: req.file.filename
+  };
+
+  // Add to array
+  houses.push(newHouse);
+
+  // Return success response
+  res.status(201).json({
+    success: true,
+    message: 'House added successfully',
+    house: newHouse
+  });
 });
 
 // Serve static files from public folder
