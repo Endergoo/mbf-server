@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Joi validation
+// Joi validation schema for houses
 const houseSchema = Joi.object({
   name: Joi.string().min(3).max(100).required(),
   size: Joi.number().integer().min(100).max(10000).required(),
@@ -32,7 +32,7 @@ const houseSchema = Joi.object({
   features: Joi.array().items(Joi.string()).min(1).required()
 });
 
-// Houses Array
+// Houses Array with placeholder images
 let houses = [
   {
     _id: 1,
@@ -126,12 +126,9 @@ app.get('/api/houses', (req, res) =>
 app.get('/api/houses/:id', (req, res) => 
 {
   const house = houses.find(h => h._id === parseInt(req.params.id));
-  if (house) 
-  {
+  if (house) {
     res.json(house);
-  } 
-  else 
-  {
+  } else {
     res.status(404).json({ message: 'House not found' });
   }
 });
@@ -191,6 +188,88 @@ app.post('/api/houses', upload.single('main_image'), (req, res) =>
     success: true,
     message: 'House added successfully',
     house: newHouse
+  });
+});
+
+// PUT endpoint to edit a house
+app.put('/api/houses/:id', upload.single('main_image'), (req, res) => 
+{
+  const houseId = parseInt(req.params.id);
+  const houseIndex = houses.findIndex(h => h._id === houseId);
+
+  if (houseIndex === -1) 
+  {
+    return res.status(404).json({
+      success: false,
+      message: 'House not found'
+    });
+  }
+
+  // Parse features if it's a string (from form data)
+  const houseData = 
+  {
+    name: req.body.name,
+    size: parseInt(req.body.size),
+    bedrooms: parseInt(req.body.bedrooms),
+    bathrooms: parseFloat(req.body.bathrooms),
+    features: typeof req.body.features === 'string' 
+      ? JSON.parse(req.body.features) 
+      : req.body.features
+  };
+
+  // Validate the house data using Joi
+  const { error, value } = houseSchema.validate(houseData);
+
+  if (error) 
+  {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: error.details.map(detail => detail.message)
+    });
+  }
+
+  // Update house object
+  const updatedHouse = 
+  {
+    _id: houseId,
+    ...value,
+    main_image: req.file ? req.file.filename : houses[houseIndex].main_image
+  };
+
+  // Update in array
+  houses[houseIndex] = updatedHouse;
+
+  // Return success response
+  res.status(200).json({
+    success: true,
+    message: 'House updated successfully',
+    house: updatedHouse
+  });
+});
+
+// DELETE endpoint to delete a house
+app.delete('/api/houses/:id', (req, res) => 
+{
+  const houseId = parseInt(req.params.id);
+  const houseIndex = houses.findIndex(h => h._id === houseId);
+
+  if (houseIndex === -1) 
+  {
+    return res.status(404).json({
+      success: false,
+      message: 'House not found'
+    });
+  }
+
+  // Remove from array
+  const deletedHouse = houses.splice(houseIndex, 1)[0];
+
+  // Return success response
+  res.status(200).json({
+    success: true,
+    message: 'House deleted successfully',
+    house: deletedHouse
   });
 });
 
